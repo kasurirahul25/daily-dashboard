@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Math Bubbles — 20 Level Challenge</title>
+<style>
+  *{box-sizing:border-box}
+  :root{
+    --bg:#07101f; --panel:#0d192b; --panel2:#111f33; --text:#f5f7fb;
+    --muted:#8996aa; --accent:#25d6f3; --gold:#f4b942; --danger:#ff526d;
+    --good:#3fe39a; --border:#1c2b40;
+  }
+  body{
+    margin:0; min-height:100vh; background:
+      radial-gradient(circle at 50% -10%,#162943 0,#07101f 48%,#050b14 100%);
+    color:var(--text); font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    display:flex; justify-content:center; padding:28px 16px;
+  }
+  .app{width:min(1120px,100%)}
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+  .pill{background:#111d30;border:1px solid #182941;border-radius:12px;padding:10px 16px;font-weight:800}
+  .pill span{color:var(--accent)}
+  .btn{
+    border:1px solid #33445c;background:#111d30;color:#fff;border-radius:10px;
+    padding:11px 16px;font-weight:800;cursor:pointer;transition:.18s;
+  }
+  .btn:hover{transform:translateY(-1px);background:#17263c}
+  .btn.primary{background:var(--accent);color:#031019;border-color:var(--accent)}
+  .screen{
+    background:rgba(13,25,43,.86);border:1px solid var(--border);border-radius:18px;
+    padding:34px;box-shadow:0 24px 70px rgba(0,0,0,.28)
+  }
+  .hidden{display:none!important}
+  h1{font-size:clamp(32px,5vw,58px);margin:0 0 10px;letter-spacing:-2px}
+  h2{margin:0 0 8px;font-size:30px}
+  p{color:var(--muted);line-height:1.6}
+  .start{text-align:center;max-width:760px;margin:35px auto}
+  .logo{
+    width:82px;height:82px;margin:0 auto 20px;border-radius:24px;
+    display:grid;place-items:center;font-size:38px;font-weight:950;
+    color:#06101b;background:linear-gradient(135deg,#24d9f4,#77efff);
+    box-shadow:0 12px 40px rgba(37,214,243,.22)
+  }
+  .rules{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:28px 0}
+  .rule{padding:18px;background:#0a1627;border:1px solid #1b2b40;border-radius:14px}
+  .rule b{display:block;margin-bottom:6px}.rule small{color:var(--muted)}
+  .bigbtn{font-size:17px;padding:15px 28px;border-radius:13px}
+  .gamehead{text-align:center;margin-bottom:18px}
+  .gamehead h2{font-size:27px}
+  .sub{font-size:14px;color:var(--muted)}
+  .progress{height:7px;background:#18263a;border-radius:99px;overflow:hidden;margin:18px auto 22px;max-width:700px}
+  .progress i{display:block;height:100%;width:5%;background:linear-gradient(90deg,var(--accent),#8ef5ff);transition:width .25s}
+  .timerline{display:flex;justify-content:center;align-items:center;gap:12px;margin:12px 0 25px;font-weight:900}
+  .timer{color:var(--accent);font-size:22px;min-width:68px}
+  .timerbar{width:min(320px,55vw);height:8px;background:#17263a;border-radius:99px;overflow:hidden}
+  .timerbar i{display:block;height:100%;width:100%;background:var(--accent);transition:width .1s linear}
+  .instruction{
+    text-align:center;color:#b9c5d6;margin-bottom:20px;
+    font-weight:700
+  }
+  .bubbles{
+    min-height:440px;position:relative;background:
+      radial-gradient(circle at 50% 50%,rgba(37,214,243,.025),transparent 48%);
+    border:1px solid #14243a;border-radius:16px;overflow:hidden;
+  }
+  .bubble{
+    position:absolute;width:170px;height:170px;border-radius:50%;
+    border:1px solid #2a3b52;background:
+      radial-gradient(circle at 34% 27%,rgba(255,255,255,.08),transparent 28%),
+      linear-gradient(145deg,#1d2b3e,#111d2e);
+    color:#f6f8fb;display:flex;align-items:center;justify-content:center;text-align:center;
+    padding:18px;font-size:22px;font-weight:900;cursor:pointer;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.015),0 14px 35px rgba(0,0,0,.2);
+    transition:transform .16s,border-color .16s,background .16s,opacity .16s;
+    user-select:none;
+  }
+  .bubble:hover{transform:scale(1.045);border-color:#46627f}
+  .bubble.selected{background:linear-gradient(145deg,#16445a,#123244);border-color:var(--accent);transform:scale(1.05)}
+  .bubble.correct{border-color:var(--good);background:#123b32}
+  .bubble.wrong{border-color:var(--danger);background:#401a27;animation:shake .22s}
+  .bubble.disabled{pointer-events:none;opacity:.72}
+  @keyframes shake{25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+  .feedback{height:34px;text-align:center;font-weight:800;margin-top:10px;color:var(--muted)}
+  .feedback.good{color:var(--good)}.feedback.bad{color:var(--danger)}
+  .result{text-align:center;max-width:720px;margin:auto}
+  .scorecircle{
+    width:180px;height:180px;border-radius:50%;margin:25px auto;
+    display:grid;place-items:center;border:8px solid #1b3248;background:#0a1626
+  }
+  .scorecircle strong{font-size:48px}.scorecircle span{display:block;color:var(--muted);font-size:13px}
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:20px 0}
+  .stat{background:#0a1627;border:1px solid #1b2b40;border-radius:14px;padding:18px}
+  .stat b{font-size:26px;display:block}.stat small{color:var(--muted)}
+  .leveltag{display:inline-block;color:#07101f;background:var(--gold);padding:6px 10px;border-radius:99px;font-size:12px;font-weight:950}
+  @media(max-width:700px){
+    body{padding:14px 10px}.screen{padding:22px 14px}.rules{grid-template-columns:1fr}
+    .bubbles{min-height:390px}.bubble{width:135px;height:135px;font-size:18px}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div id="topbar" class="topbar hidden">
+    <div class="pill">Score: <span id="score">0</span></div>
+    <div class="pill">Question: <span id="qnum">1</span>/20</div>
+    <button class="btn" id="resetBtn">Reset Test</button>
+  </div>
+
+  <section id="startScreen" class="screen">
+    <div class="start">
+      <div class="logo">∑</div>
+      <div class="leveltag">20 LEVEL CHALLENGE</div>
+      <h1>Math Bubbles</h1>
+      <p>
+        Solve by comparing the three expressions. Click them in the correct order:
+        <b>Lowest → Middle → Highest</b>.
+      </p>
+      <div class="rules">
+        <div class="rule"><b>20 Questions</b><small>One test from start to finish.</small></div>
+        <div class="rule"><b>Increasing Difficulty</b><small>Each question gets harder.</small></div>
+        <div class="rule"><b>New Every Time</b><small>Questions are randomly generated.</small></div>
+      </div>
+      <button class="btn primary bigbtn" id="startBtn">Start Test</button>
+    </div>
+  </section>
+
+  <section id="gameScreen" class="screen hidden">
+    <div class="gamehead">
+      <div class="leveltag" id="levelTag">LEVEL 1</div>
+      <h2>Choose the expressions in order</h2>
+      <div class="sub" id="difficultyText">Warm-up</div>
+      <div class="progress"><i id="progress"></i></div>
+    </div>
+
+    <div class="timerline">
+      <span class="timer" id="timer">12.0s</span>
+      <div class="timerbar"><i id="timerBar"></i></div>
+    </div>
+
+    <div class="instruction">Click <b>LOWEST</b> → <b>MIDDLE</b> → <b>HIGHEST</b></div>
+    <div id="bubbles" class="bubbles"></div>
+    <div id="feedback" class="feedback" aria-live="polite"></div>
+  </section>
+
+  <section id="resultScreen" class="screen hidden">
+    <div class="result">
+      <div class="leveltag">TEST COMPLETE</div>
+      <h2>Your Result</h2>
+      <p id="resultMessage"></p>
+      <div class="scorecircle">
+        <div><strong id="finalScore">0</strong><span>POINTS</span></div>
+      </div>
+      <div class="stats">
+        <div class="stat"><b id="correctCount">0</b><small>Correct</small></div>
+        <div class="stat"><b id="accuracy">0%</b><small>Accuracy</small></div>
+        <div class="stat"><b id="bestLevel">20</b><small>Levels Played</small></div>
+      </div>
+      <button class="btn primary bigbtn" id="againBtn">New Test</button>
+    </div>
+  </section>
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  const TOTAL = 20;
+  const $ = id => document.getElementById(id);
+  let state = {
+    question: 0, score: 0, correct: 0, order: [], selected: [],
+    timer: null, startedAt: 0, timeLimit: 12, current: null
+  };
+
+  const difficultyNames = [
+    "Basic addition & subtraction",
+    "Basic multiplication",
+    "Basic division",
+    "Mixed basic operations",
+    "Speed round",
+    "Decimals",
+    "Decimal operations",
+    "Decimal division",
+    "Percentages",
+    "Decimals + percentages",
+    "Two-step calculations",
+    "Mixed decimals",
+    "Decimal multiplication",
+    "Decimal division challenge",
+    "Percentage challenge",
+    "Mixed percentage calculations",
+    "Advanced decimals",
+    "Decimal expression challenge",
+    "Hard calculation",
+    "Final challenge"
+  ];
+
+  function rand(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+  function choice(a){ return a[rand(0,a.length-1)]; }
+  function gcd(a,b){ a=Math.abs(a); b=Math.abs(b); while(b){[a,b]=[b,a%b]} return a||1; }
+  function frac(n,d){ const g=gcd(n,d); return {n:n/g,d:d/g}; }
+  function fmt(n){
+    if (Number.isInteger(n)) return String(n);
+    const rounded = Math.round(n*100)/100;
+    return String(rounded);
+  }
+  function safeDiv(a,b){ return b === 0 ? safeDiv(a, rand(1,9)) : a/b; }
+
+  // Difficulty starts very easy and gradually reaches practical aptitude-style
+  // decimal/percentage calculations. No powers, cubes, algebra or extreme expressions.
+  function makeExpression(level){
+    let text, value;
+    const r = (min,max) => rand(min,max);
+
+    // Levels 1-5: very simple whole-number calculations.
+    if(level === 1){
+      const a=r(5,25), b=r(2,15);
+      if(Math.random()<.5){ text=`${a} + ${b}`; value=a+b; }
+      else { text=`${Math.max(a,b)} − ${Math.min(a,b)}`; value=Math.abs(a-b); }
+    }
+    else if(level === 2){
+      const a=r(3,15), b=r(2,12);
+      text=`${a} × ${b}`; value=a*b;
+    }
+    else if(level === 3){
+      const b=r(2,12), q=r(2,15);
+      text=`${b*q} ÷ ${b}`; value=q;
+    }
+    else if(level === 4){
+      const a=r(10,45), b=r(2,15), c=r(2,10);
+      const type=rand(1,3);
+      if(type===1){ text=`${a} + ${b} × ${c}`; value=a+b*c; }
+      else if(type===2){ text=`${a} − ${b} + ${c}`; value=a-b+c; }
+      else { text=`${a} × ${b} − ${c}`; value=a*b-c; }
+    }
+    else if(level === 5){
+      const a=r(15,60), b=r(2,15), c=r(2,12);
+      const type=rand(1,3);
+      if(type===1){ text=`(${a} + ${b}) − ${c}`; value=a+b-c; }
+      else if(type===2){ text=`(${a} − ${b}) + ${c}`; value=a-b+c; }
+      else { text=`${a} + ${b} × ${c}`; value=a+b*c; }
+    }
+
+    // Levels 6-10: decimals and simple percentages.
+    else if(level === 6){
+      const a=(r(10,90)/10).toFixed(1), b=(r(10,80)/10).toFixed(1);
+      if(Math.random()<.5){ text=`${a} + ${b}`; value=+a + +b; }
+      else { text=`${a} − ${b}`; value=+a - +b; }
+    }
+    else if(level === 7){
+      const a=(r(15,90)/10).toFixed(1), b=(r(10,70)/10).toFixed(1);
+      text=`${a} × ${b}`; value=+a * +b;
+    }
+    else if(level === 8){
+      const b=(r(10,60)/10).toFixed(1), q=r(2,18);
+      const a=(+b*q).toFixed(1);
+      text=`${a} ÷ ${b}`; value=q;
+    }
+    else if(level === 9){
+      const pct=choice([10,15,20,25,30,40,50,60,75]);
+      const base=r(20,180);
+      text=`${pct}% of ${base}`; value=(pct/100)*base;
+    }
+    else if(level === 10){
+      const a=(r(20,90)/10).toFixed(1);
+      const b=(r(10,60)/10).toFixed(1);
+      const pct=choice([10,20,25,50]);
+      if(Math.random()<.5){
+        text=`${a} + ${pct}% of ${b*10}`;
+        value=+a+(pct/100)*(+b*10);
+      } else {
+        text=`${a} − ${pct}% of ${b*10}`;
+        value=+a-(pct/100)*(+b*10);
+      }
+    }
+
+    // Levels 11-15: aptitude-style multi-step decimals.
+    else if(level <= 15){
+      const a=(r(20,120)/10).toFixed(1);
+      const b=(r(10,80)/10).toFixed(1);
+      const c=(r(10,60)/10).toFixed(1);
+      const type=rand(1,4);
+
+      if(type===1){
+        text=`(${a} + ${b}) × ${c}`;
+        value=(+a + +b)*+c;
+      } else if(type===2){
+        text=`${a} × ${b} + ${c}`;
+        value=+a*+b + +c;
+      } else if(type===3){
+        text=`${a} ÷ ${b} + ${c}`;
+        value=+a/+b + +c;
+      } else {
+        const pct=choice([15,20,25,30,40]);
+        text=`${a} + ${pct}% of ${b*10}`;
+        value=+a+(pct/100)*(+b*10);
+      }
+    }
+
+    // Levels 16-20: hardest allowed range — decimal division,
+    // decimal percentages and mixed decimal calculations.
+    else {
+      const a=(r(100,900)/10).toFixed(1);
+      const b=(r(10,90)/10).toFixed(1);
+      const c=(r(10,70)/10).toFixed(1);
+      const type=rand(1,5);
+
+      if(type===1){
+        text=`${a} ÷ ${b}`;
+        value=+a/+b;
+      } else if(type===2){
+        text=`${a} × ${b} − ${c}`;
+        value=+a*+b-+c;
+      } else if(type===3){
+        const pct=choice([12.5,15,17.5,20,22.5,25,30,35,40,45]);
+        text=`${a} + ${pct}% of ${b*10}`;
+        value=+a+(pct/100)*(+b*10);
+      } else if(type===4){
+        text=`${a} ÷ ${b} + ${c}`;
+        value=+a/+b+ +c;
+      } else {
+        const pct=choice([12.5,15,20,25,30,35,40]);
+        text=`${a} − ${pct}% of ${b*10}`;
+        value=+a-(pct/100)*(+b*10);
+      }
+    }
+
+    return {text, value};
+  }
+
+  function createQuestion(level){
+    // Generate three distinct values. The expressions themselves are randomized each test.
+    for(let attempt=0; attempt<100; attempt++){
+      const arr=[makeExpression(level),makeExpression(level),makeExpression(level)];
+      const vals=arr.map(x=>Math.round(x.value*100000)/100000);
+      if(new Set(vals).size===3){
+        const sorted=[0,1,2].sort((i,j)=>arr[i].value-arr[j].value);
+        return {arr, sorted};
+      }
+    }
+    // Fallback if random values collide repeatedly.
+    const base=makeExpression(level);
+    return {
+      arr:[base, {text:`(${base.text}) + 7`,value:base.value+7}, {text:`(${base.text}) − 9`,value:base.value-9}],
+      sorted:[2,0,1]
+    };
+  }
+
+  function placeBubbles(){
+    const container=$("bubbles");
+    const positions = [
+      {x:12,y:18},{x:42,y:48},{x:70,y:15}
+    ];
+    container.innerHTML="";
+    state.current.arr.forEach((item,i)=>{
+      const b=document.createElement("button");
+      b.type="button";
+      b.className="bubble";
+      b.dataset.index=i;
+      b.innerHTML=`<span>${item.text}</span>`;
+      b.style.left=positions[i].x+"%";
+      b.style.top=positions[i].y+"%";
+      b.addEventListener("click",()=>selectBubble(i,b));
+      container.appendChild(b);
+    });
+  }
+
+  function startTimer(){
+    clearInterval(state.timer);
+    state.startedAt=performance.now();
+    const tick=()=>{
+      const elapsed=(performance.now()-state.startedAt)/1000;
+      const remaining=Math.max(0,state.timeLimit-elapsed);
+      $("timer").textContent=remaining.toFixed(1)+"s";
+      $("timerBar").style.width=(remaining/state.timeLimit*100)+"%";
+      if(remaining<=0){
+        clearInterval(state.timer);
+        timeoutQuestion();
+      }
+    };
+    state.timer=setInterval(tick,100);
+    tick();
+  }
+
+  function timeoutQuestion(){
+    document.querySelectorAll(".bubble").forEach(b=>b.classList.add("disabled"));
+    $("feedback").textContent="Time's up — next question!";
+    $("feedback").className="feedback bad";
+    setTimeout(nextQuestion,650);
+  }
+
+  function selectBubble(index,button){
+    if(state.selected.includes(index) || state.selected.length>=3) return;
+    state.selected.push(index);
+    button.classList.add("selected");
+
+    const expected=state.current.sorted[state.selected.length-1];
+    if(index!==expected){
+      clearInterval(state.timer);
+      button.classList.remove("selected");
+      button.classList.add("wrong");
+      state.score=Math.max(0,state.score-2);
+      $("score").textContent=state.score;
+      $("feedback").textContent="Wrong order −2 points";
+      $("feedback").className="feedback bad";
+      document.querySelectorAll(".bubble").forEach(b=>b.classList.add("disabled"));
+      setTimeout(nextQuestion,700);
+      return;
+    }
+
+    if(state.selected.length===3){
+      clearInterval(state.timer);
+      state.correct++;
+      // Faster completion gives a small bonus.
+      const elapsed=(performance.now()-state.startedAt)/1000;
+      const speedBonus=Math.max(0,Math.floor((state.timeLimit-elapsed)*1.2));
+      const points=5+speedBonus;
+      state.score+=points;
+      $("score").textContent=state.score;
+      button.classList.add("correct");
+      $("feedback").textContent=`Correct! +${points} points`;
+      $("feedback").className="feedback good";
+      document.querySelectorAll(".bubble").forEach(b=>b.classList.add("disabled"));
+      setTimeout(nextQuestion,650);
+    }
+  }
+
+  function nextQuestion(){
+    if(state.question>=TOTAL){
+      finishTest(); return;
+    }
+    const level=state.question+1;
+    state.selected=[];
+    state.current=createQuestion(level);
+    state.timeLimit=Math.max(8,13-(level-1)*0.20);
+
+    $("qnum").textContent=level;
+    $("levelTag").textContent="LEVEL "+level;
+    $("difficultyText").textContent=difficultyNames[level-1];
+    $("progress").style.width=(level/TOTAL*100)+"%";
+    $("feedback").textContent="";
+    $("feedback").className="feedback";
+    placeBubbles();
+    startTimer();
+    state.question++;
+  }
+
+  function startTest(){
+    state={question:0,score:0,correct:0,order:[],selected:[],timer:null,startedAt:0,timeLimit:12,current:null};
+    $("score").textContent="0";
+    $("startScreen").classList.add("hidden");
+    $("resultScreen").classList.add("hidden");
+    $("gameScreen").classList.remove("hidden");
+    $("topbar").classList.remove("hidden");
+    nextQuestion();
+  }
+
+  function finishTest(){
+    clearInterval(state.timer);
+    $("gameScreen").classList.add("hidden");
+    $("topbar").classList.add("hidden");
+    $("resultScreen").classList.remove("hidden");
+    const accuracy=Math.round((state.correct/TOTAL)*100);
+    $("finalScore").textContent=state.score;
+    $("correctCount").textContent=state.correct+"/20";
+    $("accuracy").textContent=accuracy+"%";
+    $("bestLevel").textContent=TOTAL;
+    $("resultMessage").textContent =
+      accuracy>=90 ? "Excellent. You handled the advanced levels like an expert." :
+      accuracy>=70 ? "Strong attempt. Repeat the test to improve your speed and accuracy." :
+      accuracy>=50 ? "Good practice run. The next random test will be different." :
+      "Keep practicing. The difficulty rises gradually, so your calculation speed will improve.";
+  }
+
+  $("startBtn").addEventListener("click",startTest);
+  $("againBtn").addEventListener("click",startTest);
+  $("resetBtn").addEventListener("click",()=>{
+    clearInterval(state.timer);
+    $("topbar").classList.add("hidden");
+    $("gameScreen").classList.add("hidden");
+    $("resultScreen").classList.add("hidden");
+    $("startScreen").classList.remove("hidden");
+  });
+})();
+</script>
+</body>
+</html>
